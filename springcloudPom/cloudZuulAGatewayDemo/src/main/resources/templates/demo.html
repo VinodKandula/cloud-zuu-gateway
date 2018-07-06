@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <script type="text/javascript">
+        $(function(){
+
+            //按钮单击时执行
+            $("#testAjax").click(function(){
+                var count = $("#counttext").val();
+                var url = $("#url").val();
+                if (!count) {
+                    alert("请输入正确的连接数量");
+                    return;
+                }
+                //取Ajax返回结果
+                //为了简单，这里简单地从文件中读取内容作为返回数据
+                htmlobj=$.ajax({url:"/hello?count="+count+"&url="+url+"&type=1",method:"get",async:false});
+                //显示Ajax返回结果
+                $("#myDiv").html(htmlobj.responseText);
+            });
+            //按钮单击时执行
+            $("#testGate").click(function(){
+                var count = $("#counttext").val();
+                var url = $("#url").val();
+                if (!count) {
+                    alert("请输入正确的连接数量");
+                    return;
+                }
+                //取Ajax返回结果
+                //为了简单，这里简单地从文件中读取内容作为返回数据
+                htmlobj=$.ajax({url:"/hellob?count="+count+"&url="+url+"&type=2",method:"get",async:false});
+                //显示Ajax返回结果
+                $("#myDiv").html(htmlobj.responseText);
+            });
+        });
+    </script>
+</head>
+<body>
+    模拟连接数：<input type="text" id="counttext" /><br/>
+    模拟uri：<input type="text" id="url" /><br/>
+    <button id="testAjax" >测试zuul</button><br/>
+    <button id="testGate" >测试gateway</button><br/>
+    <div id="myDiv"></div>
+
+</body>
+</html>
