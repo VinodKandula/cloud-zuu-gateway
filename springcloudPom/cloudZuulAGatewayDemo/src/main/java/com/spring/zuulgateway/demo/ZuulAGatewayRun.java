@@ -19,10 +19,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
 @SpringBootApplication
@@ -31,6 +29,8 @@ import java.util.stream.IntStream;
 public class ZuulAGatewayRun {
 
     private final int max_thread = 400;
+
+    volatile boolean isTimeOver = false;
 
     private List<Map> list = new ArrayList<Map>();
 
@@ -49,11 +49,11 @@ public class ZuulAGatewayRun {
 
    @GetMapping(value = "/hello")
     public @ResponseBody List hi(String count,String url,String type) throws InterruptedException {
-        return httpReq(Integer.valueOf(count),new HashMap(),"http://localhost:8040/api/b/"+url+"?name=zcm",type);
+        return httpReq2(Integer.valueOf(count),new HashMap(),"http://localhost:8040/api/b/"+url+"?name=zcm",type);
     }
     @GetMapping(value = "/hellob")
     public @ResponseBody List hib(String count,String url,String type) throws InterruptedException {
-        return httpReq(Integer.valueOf(count),new HashMap(),"http://localhost:8050/"+url+"?name=zcm",type);
+        return httpReq2(Integer.valueOf(count),new HashMap(),"http://localhost:8050/"+url+"?name=zcm",type);
     }
     @RequestMapping(value = "/index")
     public String bigRequest(HashMap<String, Object> map,String type){
@@ -61,7 +61,6 @@ public class ZuulAGatewayRun {
         return "/demo";
     }
    private List httpReq(int count ,Map map,String url,String type) throws InterruptedException {
-
        //启动多个线程同时发起请求 设置100个线程
        ExecutorService executorService = Executors.newFixedThreadPool(max_thread);
        final CountDownLatch startLatch = new CountDownLatch(1);
@@ -82,47 +81,34 @@ public class ZuulAGatewayRun {
        list.add(map);
        return list;
    }
-}
-class PerformDemo implements  Runnable {
 
-    private CountDownLatch startLatch;
-
-    private CountDownLatch endLatch;
-
-    private String url;
-
-    public PerformDemo(CountDownLatch startLatch,CountDownLatch endLatch,String url){
-        this.startLatch = startLatch;
-        this.endLatch = endLatch;
-        this.url = url;
-    }
-
-    @Override
-    public void run() {
-        try {
-            startLatch.await();
-            demoReq(url);
-        }catch (Exception e){
-            //TODO
-            throw new RuntimeException(e);
-        }finally{
-            endLatch.countDown();
-        }
-    }
-
-    public static void demoReq(String url) {
-        //1.使用默认的配置的httpclient
-        CloseableHttpClient client = HttpClients.createDefault();
-        //2.使用get方法
-        HttpGet httpGet = new HttpGet(url);
-        try {
-            //3.执行请求，获取响应
-            CloseableHttpResponse response = client.execute(httpGet);
-        }catch(Exception e){
-            //TODO
-            throw new RuntimeException(e);
-        }finally{
-
-        }
-    }
+   public List httpReq2(int count ,Map map,String url,String type) throws InterruptedException {
+	    long time = count * 60 * 1000 * 1000;
+       AtomicInteger executorCount = new AtomicInteger(0);
+       ExecutorService executorService = Executors.newFixedThreadPool(max_thread);
+       final CountDownLatch endLatch = new CountDownLatch(count);
+       ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+       scheduledExecutorService.schedule(new Runnable() {
+           @Override
+           public void run() {
+               IntStream.range(0, count).forEach(i ->
+                       executorService.execute(new PerformDemo2(isTimeOver,executorCount,endLatch, url))
+               );
+           }
+       },time,TimeUnit.NANOSECONDS);
+       scheduledExecutorService.awaitTermination(time,TimeUnit.NANOSECONDS);
+       isTimeOver = true;
+       scheduledExecutorService.shutdownNow();
+       while(!scheduledExecutorService.isTerminated()){
+           //TODO
+       }
+       executorService.shutdownNow();
+       while(!executorService.isTerminated()){
+           //TODO
+       }
+       map.put("type","1".equals(type)?"zull":"gateway");
+       map.put("count",executorCount);
+       list.add(map);
+       return list;
+   }
 }
