@@ -1,6 +1,6 @@
 # cloud-zuu-gateway
 
-1.启动各个项目    mvn 或者 ide 
+1.启动各个项目  使用maven 或者 ide
 
 2. 访问 http://localhost:8060/index
 
