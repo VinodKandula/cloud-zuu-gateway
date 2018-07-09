@@ -1,0 +1,25 @@
+server:
+  port: 8050
+hystrix.command.fallbackcmd.execution.isolation.thread.timeoutInMilliseconds: 60000
+spring:
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+      routes:
+      - id: employee-service
+        uri: http://localhost:8021
+        predicates:
+        - Path=/**
+        filters:
+        - name: Hystrix
+          args:
+            name: fallbackcmd
+            fallbackUri: forward:/fallback
+
+##zuul path config method one
+#zuul.routes.client-a.path=/api/a/**
+#zuul.routes.client-a.serviceId=eureka-client
+#zuul.routes.client-b.path=/api/b/**
+#zuul.routes.client-b.serviceId=eureka-ribbon

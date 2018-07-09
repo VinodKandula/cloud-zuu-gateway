@@ -23,6 +23,30 @@ public class ClientRunB {
 	    return "hello i am "+name;
    }
 
+    @RequestMapping(value = "/hello1")
+    public @ResponseBody String hi1(@RequestParam(required = false) String name)throws InterruptedException {
+        Thread.sleep(1000);
+        return "hello i am "+name;
+    }
+
+    @RequestMapping(value = "/hello2")
+    public @ResponseBody String hi2(@RequestParam(required = false) String name)throws InterruptedException {
+        Thread.sleep(2000);
+        return "hello i am "+name;
+    }
+
+    @RequestMapping(value = "/hello3")
+    public @ResponseBody String hi3(@RequestParam(required = false) String name) throws InterruptedException {
+	    Thread.sleep(3000);
+        return "hello i am "+name;
+    }
+
+    @RequestMapping(value = "/hello4")
+    public @ResponseBody String hi4(@RequestParam(required = false) String name) throws InterruptedException {
+        Thread.sleep(30000);
+        return "hello i am "+name;
+    }
+
     @RequestMapping(value = "/slowRequest")
     public @ResponseBody Map slowRequest() throws InterruptedException {
         Thread.sleep(1000);

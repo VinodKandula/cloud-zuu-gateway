@@ -15,10 +15,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
@@ -28,33 +25,32 @@ import java.util.stream.IntStream;
 @Controller
 public class ZuulAGatewayRun {
 
-    private final int max_thread = 400;
+    private final int max_thread = 100;
 
     volatile boolean isTimeOver = false;
 
     private List<Map> list = new ArrayList<Map>();
 
-	public static void main(String[] args) {
-        SpringApplication.run(ZuulAGatewayRun.class, args);
-    }
+   // public static void main(String[] args) throws InterruptedException { test();}
+	public static void main(String[] args) {SpringApplication.run(ZuulAGatewayRun.class, args); }
 
-//    @GetMapping(value = "/hello")
-//    public @ResponseBody List hi(String count,String url,String type) throws InterruptedException {
-//        return httpReq(Integer.valueOf(count),new HashMap(),"http://localhost:8081"+url,type);
-//    }
-//    @GetMapping(value = "/hellob")
-//    public @ResponseBody List hib(String count,String url,String type) throws InterruptedException {
-//        return httpReq(Integer.valueOf(count),new HashMap(),"http://localhost:8082/"+url,type);
-//    }
-
-   @GetMapping(value = "/hello")
+    @GetMapping(value = "/hello")
     public @ResponseBody List hi(String count,String url,String type) throws InterruptedException {
-        return httpReq2(Integer.valueOf(count),new HashMap(),"http://localhost:8040/api/b/"+url+"?name=zcm",type);
+        return httpReq(Integer.valueOf(count),new HashMap(),"http://localhost:8040/api/b/"+url+"?name=zcm",type);
     }
     @GetMapping(value = "/hellob")
     public @ResponseBody List hib(String count,String url,String type) throws InterruptedException {
-        return httpReq2(Integer.valueOf(count),new HashMap(),"http://localhost:8050/"+url+"?name=zcm",type);
+        return httpReq(Integer.valueOf(count),new HashMap(),"http://localhost:8050/"+url+"?name=zcm",type);
     }
+
+//   @GetMapping(value = "/hello")
+//    public @ResponseBody List hi(String count,String url,String type) throws InterruptedException {
+//        return httpReq2(Integer.valueOf(count),new HashMap(),"http://127.0.0.1:8040/api/b/"+url+"?name=zcm",type);
+//    }
+//    @GetMapping(value = "/hellob")
+//    public @ResponseBody List hib(String count,String url,String type) throws InterruptedException {
+//        return httpReq2(Integer.valueOf(count),new HashMap(),"http://127.0.0.1:8050/"+url+"?name=zcm",type);
+//    }
     @RequestMapping(value = "/index")
     public String bigRequest(HashMap<String, Object> map,String type){
         map.put("hello","this is your home spring boot ");
@@ -83,20 +79,20 @@ public class ZuulAGatewayRun {
    }
 
    public List httpReq2(int count ,Map map,String url,String type) throws InterruptedException {
-	    long time = count * 60 * 1000 * 1000;
        AtomicInteger executorCount = new AtomicInteger(0);
        ExecutorService executorService = Executors.newFixedThreadPool(max_thread);
        final CountDownLatch endLatch = new CountDownLatch(count);
        ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-       scheduledExecutorService.schedule(new Runnable() {
+       scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
            @Override
            public void run() {
-               IntStream.range(0, count).forEach(i ->
+               System.out.println("the time is "+new Date()+"  type is "+("1".equals(type)?"zull":"gateway"));
+               IntStream.range(0, 600).forEach(i ->
                        executorService.execute(new PerformDemo2(isTimeOver,executorCount,endLatch, url))
                );
            }
-       },time,TimeUnit.NANOSECONDS);
-       scheduledExecutorService.awaitTermination(time,TimeUnit.NANOSECONDS);
+       },1,100,TimeUnit.MILLISECONDS);
+       scheduledExecutorService.awaitTermination(count+1,TimeUnit.SECONDS);
        isTimeOver = true;
        scheduledExecutorService.shutdownNow();
        while(!scheduledExecutorService.isTerminated()){
@@ -107,8 +103,22 @@ public class ZuulAGatewayRun {
            //TODO
        }
        map.put("type","1".equals(type)?"zull":"gateway");
-       map.put("count",executorCount);
+       map.put("count",executorCount.intValue());
        list.add(map);
+       isTimeOver = false;
        return list;
    }
+
+    public static void test() throws InterruptedException {
+        ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+        scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                System.out.println("the time is "+new Date());
+            }
+        },1,1,TimeUnit.SECONDS);
+        scheduledExecutorService.awaitTermination(10,TimeUnit.SECONDS);
+        scheduledExecutorService.shutdownNow();
+    }
+
 }

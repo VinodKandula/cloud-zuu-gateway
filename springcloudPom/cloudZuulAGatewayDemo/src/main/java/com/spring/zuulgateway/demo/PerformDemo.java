@@ -24,11 +24,11 @@ class PerformDemo implements  Runnable {
     @Override
     public void run() {
         try {
-            startLatch.await();
+           startLatch.await();
             demoReq(url);
         }catch (Exception e){
             //TODO
-            throw new RuntimeException(e);
+           System.out.println(e.getMessage());
         }finally{
             endLatch.countDown();
         }

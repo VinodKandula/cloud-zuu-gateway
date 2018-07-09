@@ -11,14 +11,14 @@ public class GatewayRun {
         SpringApplication.run(GatewayRun.class, args);
     }
 
-    @Bean
-    public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
-        return
-                builder.routes()
-                        .route(t -> t.path("/slowRequest").and().uri("http://localhost:8021"))
-                        .route(t -> t.path("/bigRequest").and().uri("http://localhost:8021"))
-                        .route(t -> t.path("/hello").and().uri("http://localhost:8021"))
-                        .build();
-    }
+//    @Bean
+//    public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
+//        return
+//                builder.routes()
+//                        .route(t -> t.path("/slowRequest").and().uri("http://localhost:8021"))
+//                        .route(t -> t.path("/bigRequest").and().uri("http://localhost:8021"))
+//                        .route(t -> t.path("/hello").and().uri("http://localhost:8021"))
+//                        .build();
+//    }
 
 }

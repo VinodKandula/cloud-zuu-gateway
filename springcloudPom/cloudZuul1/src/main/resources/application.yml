@@ -1,0 +1,30 @@
+server:
+  port: 8040
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8030/eureka/
+spring:
+  application:
+    name: eureka-zuull
+zuul:
+  routes:
+    eureka-clientb: /api/b/**
+  host:
+    connect-timeout-millis: 60000
+    socket-timeout-millis: 60000
+ribbon:
+  ReadTimeout: 60000
+  SocketTimeout: 60000
+hystrix:
+  command:
+    eureka_clientb:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 80000
+##zuul path config method one
+#zuul.routes.client-a.path=/api/a/**
+#zuul.routes.client-a.serviceId=eureka-client
+#zuul.routes.client-b.path=/api/b/**
+#zuul.routes.client-b.serviceId=eureka-ribbon
